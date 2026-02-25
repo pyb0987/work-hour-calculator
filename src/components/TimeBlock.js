@@ -123,14 +123,14 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   gripLine: {
-    width: 28,
+    width: 22,
     height: 2,
     borderRadius: 1,
     backgroundColor: THEME.primary,
     opacity: 0.5,
   },
   gripLineShort: {
-    width: 18,
+    width: 14,
   },
   labelContainer: {
     flex: 1,

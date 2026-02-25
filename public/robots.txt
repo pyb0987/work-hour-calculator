@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://work-calendar-lake.vercel.app/sitemap.xml
+Sitemap: https://work-hour-calculator.vercel.app/sitemap.xml

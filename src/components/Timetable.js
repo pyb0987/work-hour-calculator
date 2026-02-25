@@ -137,6 +137,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: THEME.border,
     backgroundColor: THEME.surface,
+    paddingRight: 4,
   },
   timeAxisHeader: {
     width: TIME_AXIS_WIDTH,
@@ -158,6 +159,7 @@ const styles = StyleSheet.create({
   gridContainer: {
     flexDirection: 'row',
     height: GRID_HEIGHT,
+    paddingRight: 4,
   },
   timeAxis: {
     width: TIME_AXIS_WIDTH,

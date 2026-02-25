@@ -10,7 +10,7 @@ const path = require('path');
 const DIST_HTML = path.join(__dirname, '..', 'dist', 'index.html');
 
 const CONFIG = {
-  url: 'https://work-calendar-lake.vercel.app',
+  url: 'https://work-hour-calculator.vercel.app',
   title: '근무 시간 계산기 - 주간 근무시간 쉽게 계산',
   description:
     '주간 근무 시간을 드래그로 쉽게 계산하고 관리하는 웹앱. 출퇴근 시간 입력, 점심시간 자동 제외, 주간 근무시간 합계를 한눈에 확인하세요.',
