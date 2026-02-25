@@ -1,11 +1,12 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
-import { HOUR_START, HOUR_HEIGHT, GRID_HEIGHT, HANDLE_HEIGHT } from '../state/constants';
+import { View, Text, StyleSheet, Platform } from 'react-native';
+import { HOUR_START, HOUR_HEIGHT, GRID_HEIGHT, HANDLE_HEIGHT, THEME } from '../state/constants';
 import { useWorkCalendar } from '../state/WorkCalendarContext';
 import { timeStringToMinutes, minutesToTimeString } from '../utils/timeCalc';
 import { snapMinutes } from '../utils/snapTime';
 import { useTimetableScroll } from './Timetable';
 import TimeBlock from './TimeBlock';
+import TimeInput from './TimeInput';
 
 function yToMinutes(y) {
   return HOUR_START * 60 + (y / HOUR_HEIGHT) * 60;
@@ -25,6 +26,8 @@ export default function DayColumn({ dayKey }) {
   const scrollCtx = useTimetableScroll();
 
   const [drag, setDrag] = useState(null);
+  const [inputStart, setInputStart] = useState('');
+  const [inputEnd, setInputEnd] = useState('');
   const columnRef = useRef(null);
 
   const coreStartMin = timeStringToMinutes(settings.coreStart) || 600;
@@ -88,6 +91,9 @@ export default function DayColumn({ dayKey }) {
     }
 
     function onPointerDown(e) {
+      // Skip drag when interacting with time inputs
+      if (e.target.tagName === 'INPUT') return;
+
       const { hasBlock: hb, coreStartMin: csm, coreEndMin: cem, dayKey: dk } = latest.current;
       const y = getY(e);
       const zone = getHitZone(y);
@@ -190,6 +196,47 @@ export default function DayColumn({ dayKey }) {
     };
   }, [scrollCtx, setDayTime, isReadOnly]);
 
+  // Sync input state from day data (external changes like drag or presets)
+  useEffect(() => {
+    setInputStart(day.startTime || '');
+  }, [day.startTime]);
+
+  useEffect(() => {
+    setInputEnd(day.endTime || '');
+  }, [day.endTime]);
+
+  const handleStartBlur = () => {
+    const match = inputStart.match(/^(\d{1,2}):(\d{2})$/);
+    if (!match) return;
+    const h = Math.min(23, Math.max(0, parseInt(match[1], 10)));
+    const m = Math.min(59, Math.max(0, parseInt(match[2], 10)));
+    const normalized = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    setInputStart(normalized);
+    setDayTime(dayKey, 'startTime', normalized);
+    // Auto-set endTime if missing
+    if (!day.endTime) {
+      const endVal = minutesToTimeString(coreEndMin);
+      setInputEnd(endVal);
+      setDayTime(dayKey, 'endTime', endVal);
+    }
+  };
+
+  const handleEndBlur = () => {
+    const match = inputEnd.match(/^(\d{1,2}):(\d{2})$/);
+    if (!match) return;
+    const h = Math.min(23, Math.max(0, parseInt(match[1], 10)));
+    const m = Math.min(59, Math.max(0, parseInt(match[2], 10)));
+    const normalized = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    setInputEnd(normalized);
+    setDayTime(dayKey, 'endTime', normalized);
+    // Auto-set startTime if missing
+    if (!day.startTime) {
+      const startVal = minutesToTimeString(coreStartMin);
+      setInputStart(startVal);
+      setDayTime(dayKey, 'startTime', startVal);
+    }
+  };
+
   // Display values during drag
   let displayStart = day.startTime;
   let displayEnd = day.endTime;
@@ -205,6 +252,15 @@ export default function DayColumn({ dayKey }) {
     }
   }
 
+  // Position the input group below the lunch area to avoid overlap
+  const coreBottom = minutesToY(coreEndMin);
+  const lunchEndMin = settings.lunchEnabled
+    ? timeStringToMinutes(settings.lunchEnd) || coreStartMin
+    : coreStartMin;
+  const areaTop = minutesToY(Math.max(lunchEndMin, coreStartMin));
+  const INPUT_GROUP_HEIGHT = 52;
+  const inputGroupTop = areaTop + (coreBottom - areaTop) / 2 - INPUT_GROUP_HEIGHT / 2;
+
   return (
     <View ref={columnRef} style={[styles.column, isReadOnly && styles.readOnly]}>
       <TimeBlock
@@ -216,6 +272,28 @@ export default function DayColumn({ dayKey }) {
         isDragging={!!drag}
         activeHandle={activeHandle}
       />
+      <View
+        style={[styles.inputGroup, { top: inputGroupTop }]}
+        onPointerDown={(e) => e.stopPropagation()}
+      >
+        <TimeInput
+          value={inputStart}
+          onChange={setInputStart}
+          onBlur={handleStartBlur}
+          placeholder="--:--"
+          editable={!isReadOnly}
+          style={styles.coreInput}
+        />
+        <Text style={styles.inputTilde}>~</Text>
+        <TimeInput
+          value={inputEnd}
+          onChange={setInputEnd}
+          onBlur={handleEndBlur}
+          placeholder="--:--"
+          editable={!isReadOnly}
+          style={styles.coreInput}
+        />
+      </View>
     </View>
   );
 }
@@ -231,5 +309,30 @@ const styles = StyleSheet.create({
   readOnly: {
     opacity: 0.7,
     pointerEvents: 'none',
+  },
+  inputGroup: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 20,
+    gap: 1,
+  },
+  coreInput: {
+    width: 44,
+    fontSize: 10,
+    fontWeight: '600',
+    fontFamily: 'monospace',
+    paddingHorizontal: 2,
+    paddingVertical: 2,
+    backgroundColor: 'rgba(44, 181, 172, 0.08)',
+    borderColor: THEME.coreBorder,
+    color: THEME.primaryDark,
+    borderRadius: 3,
+  },
+  inputTilde: {
+    fontSize: 9,
+    color: THEME.textDim,
+    lineHeight: 10,
   },
 });
