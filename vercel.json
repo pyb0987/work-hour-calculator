@@ -1,0 +1,4 @@
+{
+  "buildCommand": "npx expo export --platform web && node scripts/postbuild-seo.js",
+  "outputDirectory": "dist"
+}

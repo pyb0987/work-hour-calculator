@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "근무 시간 계산기",
+    "slug": "work-calendar",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#F0F2F5"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#F0F2F5"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "backgroundColor": "#F0F2F5",
+      "themeColor": "#2CB5AC",
+      "favicon": "./public/favicon.png",
+      "name": "근무 시간 계산기",
+      "shortName": "근무계산기"
+    },
+    "plugins": [
+      "expo-font"
+    ]
+  }
+}
